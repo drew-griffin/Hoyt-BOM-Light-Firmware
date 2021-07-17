@@ -12,13 +12,43 @@
 #define BS_SRCK PIN_PB7   // Serial clock
 #define BS_G PIN_PD4      //active low led enable
 
+#define LP1 0x1000
+#define LP2 0x2000
+#define LP3 0x4000
+#define LP4 0x8000
+#define LP5 0x0800
+#define LP6 0x0400
+#define LP7 0x0080
+#define LP8 0x0040
+#define LP9 0x0020
+#define LP10 0x0010
+#define LP11 0x0008
+#define LP12 0x0004
+
 boolean toggle0 = 0;
 boolean toggle1 = 0;
 boolean toggle2 = 0;
 
-ISR(TIMER0_COMPA_vect)
-{ //timer0 interrupt 2kHz toggles pin 8
-  //generates pulse wave of frequency 2kHz/2 = 1kHz (takes two cycles for full wave- toggle high then toggle low)
+int sCurve[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
+    0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02,
+    0x02, 0x02, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x04, 0x04, 0x04, 0x04, 0x04, 0x05, 0x05, 0x05,
+    0x05, 0x06, 0x06, 0x06, 0x07, 0x07, 0x07, 0x08, 0x08, 0x08, 0x09, 0x09, 0x0A, 0x0A, 0x0B, 0x0B,
+    0x0C, 0x0C, 0x0D, 0x0D, 0x0E, 0x0F, 0x0F, 0x10, 0x11, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17,
+    0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1F, 0x20, 0x21, 0x23, 0x24, 0x26, 0x27, 0x29, 0x2B, 0x2C,
+    0x2E, 0x30, 0x32, 0x34, 0x36, 0x38, 0x3A, 0x3C, 0x3E, 0x40, 0x43, 0x45, 0x47, 0x4A, 0x4C, 0x4F,
+    0x51, 0x54, 0x57, 0x59, 0x5C, 0x5F, 0x62, 0x64, 0x67, 0x6A, 0x6D, 0x70, 0x73, 0x76, 0x79, 0x7C,
+    0x7F, 0x82, 0x85, 0x88, 0x8B, 0x8E, 0x91, 0x94, 0x97, 0x9A, 0x9C, 0x9F, 0xA2, 0xA5, 0xA7, 0xAA,
+    0xAD, 0xAF, 0xB2, 0xB4, 0xB7, 0xB9, 0xBB, 0xBE, 0xC0, 0xC2, 0xC4, 0xC6, 0xC8, 0xCA, 0xCC, 0xCE,
+    0xD0, 0xD2, 0xD3, 0xD5, 0xD7, 0xD8, 0xDA, 0xDB, 0xDD, 0xDE, 0xDF, 0xE1, 0xE2, 0xE3, 0xE4, 0xE5,
+    0xE6, 0xE7, 0xE8, 0xE9, 0xEA, 0xEB, 0xEC, 0xED, 0xED, 0xEE, 0xEF, 0xEF, 0xF0, 0xF1, 0xF1, 0xF2,
+    0xF2, 0xF3, 0xF3, 0xF4, 0xF4, 0xF5, 0xF5, 0xF6, 0xF6, 0xF6, 0xF7, 0xF7, 0xF7, 0xF8, 0xF8, 0xF8,
+    0xF9, 0xF9, 0xF9, 0xF9, 0xFA, 0xFA, 0xFA, 0xFA, 0xFA, 0xFB, 0xFB, 0xFB, 0xFB, 0xFB, 0xFB, 0xFC,
+    0xFC, 0xFC, 0xFC, 0xFC, 0xFC, 0xFC, 0xFC, 0xFC, 0xFD, 0xFD, 0xFD, 0xFD, 0xFD, 0xFD, 0xFD, 0xFD,
+    0xFD, 0xFD, 0xFD, 0xFD, 0xFD, 0xFD, 0xFD, 0xFE, 0xFE, 0xFE, 0xFE, 0xFE, 0xFE, 0xFE, 0xFF, 0xFF};
+
+    ISR(TIMER0_COMPA_vect)
+{
+
   if (toggle0)
   {
     digitalWrite(R_LED_PIN, HIGH);
@@ -31,44 +61,44 @@ ISR(TIMER0_COMPA_vect)
   }
 }
 
-// ISR(TIMER1_COMPA_vect)
-// { //timer1 interrupt 1Hz toggles pin 13 (LED)
-//   //generates pulse wave of frequency 1Hz/2 = 0.5kHz (takes two cycles for full wave- toggle high then toggle low)
-//   if (toggle1)
-//   {
-//     digitalWrite(G_LED_PIN, HIGH);
-//     toggle1 = 0;
-//   }
-//   else
-//   {
-//     digitalWrite(G_LED_PIN, LOW);
-//     toggle1 = 1;
-//   }
-// }
+ISR(TIMER1_COMPA_vect)
+{
 
-// ISR(TIMER2_COMPA_vect)
-// { //timer1 interrupt 8kHz toggles pin 9
-//   //generates pulse wave of frequency 8kHz/2 = 4kHz (takes two cycles for full wave- toggle high then toggle low)
-//   if (toggle2)
-//   {
-//     digitalWrite(B_LED_PIN, HIGH);
-//     toggle2 = 0;
-//   }
-//   else
-//   {
-//     digitalWrite(B_LED_PIN, LOW);
-//     toggle2 = 1;
-//   }
-// }
+  if (toggle1)
+  {
+    digitalWrite(G_LED_PIN, HIGH);
+    toggle1 = 0;
+  }
+  else
+  {
+    digitalWrite(G_LED_PIN, LOW);
+    toggle1 = 1;
+  }
+}
+
+ISR(TIMER2_COMPA_vect)
+{
+
+  if (toggle2)
+  {
+    digitalWrite(B_LED_PIN, HIGH);
+    toggle2 = 0;
+  }
+  else
+  {
+    digitalWrite(B_LED_PIN, LOW);
+    toggle2 = 1;
+  }
+}
 
 void setupTimer0() { //calculated with http://www.8bit-era.cz/arduino-timer-interrupts-calculator.html
-  // TIMER 0 for interrupt frequency 1000 Hz:
+  // TIMER 0 for interrupt frequency 500 Hz:
   cli();      // stop interrupts
   TCCR0A = 0; // set entire TCCR0A register to 0
   TCCR0B = 0; // same for TCCR0B
   TCNT0 = 0;  // initialize counter value to 0
   // set compare match register for 1000 Hz increments
-  OCR0A = 124; // = 8000000 / (64 * 1000) - 1 (must be <256)
+  OCR0A = 249; // = 8000000 / (64 * 500) - 1 (must be <256)
   // turn on CTC mode
   TCCR0B |= (1 << WGM01);
   // Set CS02, CS01 and CS00 bits for 64 prescaler
@@ -79,13 +109,13 @@ void setupTimer0() { //calculated with http://www.8bit-era.cz/arduino-timer-inte
 }
 
 void setupTimer1() { //calculated with http://www.8bit-era.cz/arduino-timer-interrupts-calculator.html
-  // TIMER 1 for interrupt frequency 1000 Hz:
+  // TIMER 1 for interrupt frequency 500 Hz:
   cli();      // stop interrupts
   TCCR1A = 0; // set entire TCCR1A register to 0
   TCCR1B = 0; // same for TCCR1B
   TCNT1 = 0;  // initialize counter value to 0
   // set compare match register for 1000 Hz increments
-  OCR1A = 7999; // = 8000000 / (1 * 1000) - 1 (must be <65536)
+  OCR1A = 15999; // = 8000000 / (1 * 500) - 1 (must be <65536)
   // turn on CTC mode
   TCCR1B |= (1 << WGM12);
   // Set CS12, CS11 and CS10 bits for 1 prescaler
@@ -96,17 +126,17 @@ void setupTimer1() { //calculated with http://www.8bit-era.cz/arduino-timer-inte
 }
 
 void setupTimer2() {             //calculated with http://www.8bit-era.cz/arduino-timer-interrupts-calculator.html
-  // TIMER 2 for interrupt frequency 1000 Hz:
+  // TIMER 2 for interrupt frequency 500 Hz:
   cli();      // stop interrupts
   TCCR2A = 0; // set entire TCCR2A register to 0
   TCCR2B = 0; // same for TCCR2B
   TCNT2 = 0;  // initialize counter value to 0
-  // set compare match register for 1000 Hz increments
-  OCR2A = 249; // = 8000000 / (32 * 1000) - 1 (must be <256)
+  // set compare match register for 500 Hz increments
+  OCR2A = 1; // = 8000000 / (64 * 500) - 1 (must be <256)
   // turn on CTC mode
   TCCR2B |= (1 << WGM21);
-  // Set CS22, CS21 and CS20 bits for 32 prescaler
-  TCCR2B |= (0 << CS22) | (1 << CS21) | (1 << CS20);
+  // Set CS22, CS21 and CS20 bits for 64 prescaler
+  TCCR2B |= (1 << CS22) | (0 << CS21) | (0 << CS20);
   // enable timer compare interrupt
   TIMSK2 |= (1 << OCIE2A);
   sei(); // allow interrupts
@@ -117,15 +147,10 @@ void setupRGB(){
   pinMode(G_LED_PIN, OUTPUT);
   pinMode(B_LED_PIN, OUTPUT);
 
-  analogWrite(R_LED_PIN, 2);
-  analogWrite(G_LED_PIN, 2);
-  analogWrite(B_LED_PIN, 2);
-  delay(2000);
 }
 
 void setupMainLight(){
   pinMode(LED_CTRL, OUTPUT);
-  analogWrite(LED_CTRL, 20);
 }
 
 void setupSideLights(){
@@ -145,31 +170,61 @@ void setup()
   setupRGB();
   setupMainLight();
   setupSideLights();
-  setupTimer0();
-  setupTimer1();
-  setupTimer2();
+  //setupTimer0();
+  //setupTimer1();
+  //setupTimer2();
 }
 
 void shiftByte(int bits) //shiftOut should be rewritten to get better peformance (currently uses digitalWrite)
 {
+
   digitalWrite(BS_RCK, LOW);
   digitalWrite(BS_SRCK, LOW);
+
   shiftOut(BS_SER_IN, BS_SRCK, MSBFIRST, bits);
+
   digitalWrite(BS_SER_IN, LOW);
   //return the latch pin high to signal chip that it
   //no longer needs to listen for information
   digitalWrite(BS_RCK, HIGH);
+
+}
+
+void setLP(int data){
+  digitalWrite(BS_G, HIGH); //make sure nothing is displayed during data transmission
+  shiftByte(data);
+  shiftByte(data >> 8);
+  digitalWrite(BS_G, LOW); //turn display back on again
 }
 
 void loop()
 {
-  int data = 0x0000;
-  shiftByte(data);
-  shiftByte(data >> 8);
-  delay(250);
-  data = 0xFFFF;
-  shiftByte(data);
-  shiftByte(data >> 8);
-  delay(250);
+  analogWrite(R_LED_PIN, 0);
+  analogWrite(G_LED_PIN, 0);
+  analogWrite(B_LED_PIN, 0);
+  setLP(LP1 | LP12);
+  delay(500);
+  setLP(LP2 | LP11);
+  delay(500);
+  setLP(LP3 | LP10);
+  delay(500);
+  setLP(LP4 | LP9);
+  delay(500);
+  setLP(LP5 | LP8);
+  delay(500);
+  setLP(LP6 | LP7);
+  delay(500);
+  setLP(0);
+  for(int i = 0; i<255; i++) {
+    analogWrite(LED_CTRL, sCurve[i]/4);
+    delay(4);
+  }
 
+  delay(500);
+
+  analogWrite(LED_CTRL, 0);
+  analogWrite(R_LED_PIN, 10);
+  analogWrite(G_LED_PIN, 10);
+  analogWrite(B_LED_PIN, 10);
+  delay(500);
 }
