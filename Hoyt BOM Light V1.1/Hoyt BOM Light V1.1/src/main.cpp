@@ -1,4 +1,6 @@
 #include <Arduino.h>
+#include <Wire.h>
+#include "kxtj3-1057.h"
 
 #define R_LED_PIN PIN_PD6
 #define G_LED_PIN PIN_PB2
@@ -46,7 +48,18 @@ int sCurve[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01
     0xFC, 0xFC, 0xFC, 0xFC, 0xFC, 0xFC, 0xFC, 0xFC, 0xFD, 0xFD, 0xFD, 0xFD, 0xFD, 0xFD, 0xFD, 0xFD,
     0xFD, 0xFD, 0xFD, 0xFD, 0xFD, 0xFD, 0xFD, 0xFE, 0xFE, 0xFE, 0xFE, 0xFE, 0xFE, 0xFE, 0xFF, 0xFF};
 
-    ISR(TIMER0_COMPA_vect)
+#define LOW_POWER
+//#define HIGH_RESOLUTION
+
+#define KXTJ3_DEBUG Serial
+
+float sampleRate = 6.25; // HZ - Samples per second - 0.781, 1.563, 3.125, 6.25, 12.5, 25, 50, 100, 200, 400, 800, 1600Hz
+uint8_t accelRange = 2;  // Accelerometer range = 2, 4, 8, 16g
+
+KXTJ3 myIMU(0x0F); // Address can be 0x0E or 0x0F
+
+
+ISR(TIMER0_COMPA_vect)
 {
 
   if (toggle0)
@@ -164,15 +177,46 @@ void setupSideLights(){
   digitalWrite(BS_CLR, HIGH);
 }
 
+void setupIMU()
+{
+
+  if (myIMU.begin(sampleRate, accelRange) != 0)
+  {
+    analogWrite(R_LED_PIN, 512);
+    delay(500);
+    analogWrite(R_LED_PIN, 0);
+  }
+  else
+  {
+    analogWrite(G_LED_PIN, 512);
+    delay(500);
+    analogWrite(G_LED_PIN, 0);
+  }
+
+  // Detection threshold, movement duration and polarity
+  myIMU.intConf(123, 1, 10, HIGH);
+
+  uint8_t readData = 0;
+
+  // Get the ID:
+  // myIMU.readRegister(&readData, KXTJ3_WHO_AM_I);
+
+  // setLP(readData);
+  // delay(500);
+  // setLP(0);
+}
+
 void setup()
 {
   // put your setup code here, to run once:
   setupRGB();
   setupMainLight();
   setupSideLights();
+  //setupIMU();
   //setupTimer0();
   //setupTimer1();
   //setupTimer2();
+  Serial.begin(9600); // open the serial port at 9600 bps:
 }
 
 void shiftByte(int bits) //shiftOut should be rewritten to get better peformance (currently uses digitalWrite)
@@ -199,32 +243,78 @@ void setLP(int data){
 
 void loop()
 {
-  analogWrite(R_LED_PIN, 0);
-  analogWrite(G_LED_PIN, 0);
-  analogWrite(B_LED_PIN, 0);
+
   setLP(LP1 | LP12);
-  delay(500);
-  setLP(LP2 | LP11);
-  delay(500);
-  setLP(LP3 | LP10);
-  delay(500);
-  setLP(LP4 | LP9);
-  delay(500);
-  setLP(LP5 | LP8);
-  delay(500);
-  setLP(LP6 | LP7);
-  delay(500);
-  setLP(0);
-  for(int i = 0; i<255; i++) {
-    analogWrite(LED_CTRL, sCurve[i]/4);
-    delay(4);
-  }
+    delay(500);
+    setLP(LP2 | LP11);
+    delay(500);
+    Serial.print("Loop");
+    // myIMU.standby(false);
 
-  delay(500);
+    // int16_t dataHighres = 0;
 
-  analogWrite(LED_CTRL, 0);
-  analogWrite(R_LED_PIN, 10);
-  analogWrite(G_LED_PIN, 10);
-  analogWrite(B_LED_PIN, 10);
-  delay(500);
+    // dataHighres = myIMU.axisAccel(X);
+    // setLP(dataHighres);
+    // delay(1000);
+    // setLP(0);
+
+    // if (myIMU.readRegisterInt16(&dataHighres, KXTJ3_OUT_X_L) != 0)
+    // {
+    //   setLP(dataHighres);
+    //   delay(2);
+    //   setLP(0);
+    // }
+
+    // if (myIMU.readRegisterInt16(&dataHighres, KXTJ3_OUT_Z_L) != 0)
+    // {
+    //   setLP(dataHighres);
+    //   delay(2);
+    //   setLP(0);
+    // }
+
+    // Read accelerometer data in mg as Float
+    // Serial.print(" Acceleration X float = ");
+    // Serial.println(myIMU.axisAccel(X), 4);
+
+    // Read accelerometer data in mg as Float
+    // Serial.print(" Acceleration Y float = ");
+    // Serial.println(myIMU.axisAccel(Y), 4);
+
+    // Read accelerometer data in mg as Float
+    // Serial.print(" Acceleration Z float = ");
+    // Serial.println(myIMU.axisAccel(Z), 4);
+
+    //myIMU.standby(true);
+
+    //delay(1);
+    //   analogWrite(R_LED_PIN, 0);
+    //   analogWrite(G_LED_PIN, 0);
+    //   analogWrite(B_LED_PIN, 0);
+    //   setLP(LP1 | LP12);
+    //   delay(500);
+    //   setLP(LP2 | LP11);
+    //   delay(500);
+    //   setLP(LP3 | LP10);
+    //   delay(500);
+    //   setLP(LP4 | LP9);
+    //   delay(500);
+    //   setLP(LP5 | LP8);
+    //   delay(500);
+    //   setLP(LP6 | LP7);
+    //   delay(500);
+    //   setLP(LP6 | LP7);
+    //   delay(500);
+    //   setLP(0);
+    //   for(int i = 0; i<255; i++) {
+    //     analogWrite(LED_CTRL, sCurve[i]/4);
+    //     delay(4);
+    //   }
+
+    //   delay(500);
+
+    //   analogWrite(LED_CTRL, 0);
+    //   analogWrite(R_LED_PIN, 10);
+    //   analogWrite(G_LED_PIN, 10);
+    //   analogWrite(B_LED_PIN, 10);
+    //   delay(500);
 }
