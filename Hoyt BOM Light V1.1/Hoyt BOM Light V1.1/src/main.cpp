@@ -263,10 +263,13 @@ void loop()
 
   readSensors();
 
+analogWrite(G_LED_PIN,900);
   setLP(LP1 | LP12);
     delay(500);
+    analogWrite(G_LED_PIN,0);
     setLP(LP2 | LP11);
     delay(500);
+    
 
 
     myIMU.standby(false);
