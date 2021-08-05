@@ -4,6 +4,8 @@
 #include <Wire.h>
 #include "kxtj3-1057.h"
 
+#define HWREG(x) (*((volatile unsigned int *)(x))) //more hardware information needed on the below definitions
+
 #define R_LED_PIN PIN_PD6
 #define G_LED_PIN PIN_PB2
 #define B_LED_PIN PIN_PB1
@@ -257,19 +259,89 @@ void setLP(int data){
   digitalWrite(BS_G, LOW); //turn display back on again
 }
 
+//find out from danny more hardware information 
+/*
+void analog(int data, int brightness, int delayTime){
+
+analogWrite(data,brightness);
+delay(delayTime);
+analogWrite(data, 0);
+}
+
+// not as good or efficient and shiftByte but uses digital write, manually setting registers of each side light 
+//high or low
+void setLP_Analog(int data, int brightness, int delayTime){
+digitalWrite(BS_G, HIGH); //make sure nothing is displayed during data transmission
+
+analog(data,brightness,delayTime);
+
+digitalWrite(BS_G, LOW); //turn display back on again
+}
+*/
+
+
 void loop()
 {
   Serial.print("Loop");
 
-  readSensors();
+  readSensors(); // read the sensors and print serially
 
-analogWrite(G_LED_PIN,900);
-  setLP(LP1 | LP12);
+if ((analogRead(LIGHT_SENSE_1)*2.2) < 5) {
+
+    //HWREG(BS_SER_IN) = LP1 | LP2; // send message to data out
+    analogWrite(LED_CTRL,900);
+    analogWrite(R_LED_PIN,900);
+    setLP(LP1);
     delay(500);
-    analogWrite(G_LED_PIN,0);
-    setLP(LP2 | LP11);
+    analogWrite(R_LED_PIN,0);
+    //setLP_Analog(LP2,900,500);
+    setLP(LP2);
     delay(500);
     
+    analogWrite(R_LED_PIN,900);
+    setLP(LP3);
+    delay(500);
+    analogWrite(R_LED_PIN,0);
+    setLP(LP4);
+    delay(500);
+    
+    analogWrite(R_LED_PIN,900);
+    setLP(LP5);
+    delay(500);
+    analogWrite(R_LED_PIN,0);
+    setLP(LP6);
+    delay(500);
+
+    analogWrite(R_LED_PIN,900);
+    setLP(LP7);
+    delay(500);
+    analogWrite(R_LED_PIN,0);
+    setLP(LP8);
+    delay(500);
+    
+    analogWrite(R_LED_PIN,900);
+    setLP(LP9);
+    delay(500);
+    analogWrite(R_LED_PIN,0);
+    setLP(LP10);
+    delay(500);
+
+    analogWrite(R_LED_PIN,900);
+    setLP(LP11);
+    delay(500);
+    analogWrite(R_LED_PIN,0);
+    setLP(LP12);
+    //delay(500);
+    
+}
+    
+  else {
+
+    analogWrite(LED_CTRL,0);
+    analogWrite(R_LED_PIN,0);
+    digitalWrite(BS_SER_IN, LOW);
+   
+  }
 
 
     myIMU.standby(false);
@@ -300,5 +372,5 @@ analogWrite(G_LED_PIN,900);
 
     myIMU.standby(true);
 
-    delay(1000);
+   //delay(1000);
 }
